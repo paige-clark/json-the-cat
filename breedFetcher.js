@@ -1,24 +1,33 @@
-const args = process.argv.slice(2);
-const breed = args.join('_');
 const request = require('request');
 
-request(`https://api.thecatapi.com/v1/breeds/search?q=${breed}`, function(error, response, body) {
-  if (error) {
-    console.log(`Your search returned this error: `, error);
-    return;
-  }
-  // console.error('error:', error); // print the error if one occurred
-  // console.log('statusCode:', response && response.statusCode); // print the status code
-  const data = JSON.parse(body)[0];
-  if (data === undefined) {
-    console.log(`Couldn't find that cat! Please try again.`);
-    return;
-  }
-  console.log(`Your search for ${breed} turned up:\n`);
-  console.log(`<${data.name}>`, '\n\n', data.description);
-});
+const fetchBreedDescription = function(breedName, callback) {
+  request(`https://api.thecatapi.com/v1/breeds/search?q=${breedName}`, function(error, response, body) {
+    const data = JSON.parse(body)[0];
+    // error = 'Cleaning the litter box...'; // for testing error status
+    if (error) {
+      callback(error, null);
+      return;
+    }
+    if (data === undefined) {
+      error = 'There is no cat defined.';
+      callback(error, null);
+    }
+    if (data !== undefined) {
+      const description = data.description;
+      callback(null, description);
+    }
+  });
+};
+
+module.exports = {
+  fetchBreedDescription
+};
 
 /* NOTES:
 ? if the cat is not found?
   * prints undefined ... we must console log 'cat not found try typing the name in again (spaces are ok)'
+
+- fetchBreedDescription is taking in a breed name and a callback
+  - everywhere there's a console log statement, callback instead    DONE
+    * this adds the information to the callback function instead
 */
